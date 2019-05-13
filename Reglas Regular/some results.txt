@@ -1,0 +1,115 @@
+
+F:\UNLP\Tesis\Capitulos\Resultados\TPOT - Reglas Regular>python AutoEDM.py
+Generation 1 - Current best internal CV score: 0.7811049074346165
+Generation 2 - Current best internal CV score: 0.7811049074346165
+Generation 3 - Current best internal CV score: 0.7811049074346165
+Generation 4 - Current best internal CV score: 0.7909491625036732
+Generation 5 - Current best internal CV score: 0.7909491625036732
+Generation 6 - Current best internal CV score: 0.7909491625036732
+Generation 7 - Current best internal CV score: 0.7909491625036732
+Generation 8 - Current best internal CV score: 0.7909491625036732
+Generation 9 - Current best internal CV score: 0.7909491625036732
+Generation 10 - Current best internal CV score: 0.7909491625036732
+Generation 11 - Current best internal CV score: 0.7909491625036732
+Generation 12 - Current best internal CV score: 0.79335880105789
+Generation 13 - Current best internal CV score: 0.79335880105789
+Generation 14 - Current best internal CV score: 0.7982074640023509
+Generation 15 - Current best internal CV score: 0.7982074640023509
+Generation 16 - Current best internal CV score: 0.8030561269468116
+Generation 17 - Current best internal CV score: 0.8030561269468116
+Generation 18 - Current best internal CV score: 0.8030561269468116
+Generation 19 - Current best internal CV score: 0.8030561269468116
+Generation 20 - Current best internal CV score: 0.8030561269468116
+Generation 21 - Current best internal CV score: 0.8030561269468116
+Generation 22 - Current best internal CV score: 0.8030561269468116
+Generation 23 - Current best internal CV score: 0.8030561269468116
+Generation 24 - Current best internal CV score: 0.8054363796650016
+Generation 25 - Current best internal CV score: 0.8054363796650016
+Generation 26 - Current best internal CV score: 0.8054363796650016
+Generation 27 - Current best internal CV score: 0.8054951513370556
+Generation 28 - Current best internal CV score: 0.8079635615633265
+Generation 29 - Current best internal CV score: 0.8079635615633265
+Generation 30 - Current best internal CV score: 0.8079635615633265
+Generation 31 - Current best internal CV score: 0.8079635615633265
+Generation 32 - Current best internal CV score: 0.8079635615633265
+Generation 33 - Current best internal CV score: 0.8103732001175434
+Generation 34 - Current best internal CV score: 0.8103732001175434
+Generation 35 - Current best internal CV score: 0.8104025859535703
+Generation 36 - Current best internal CV score: 0.8104025859535703
+Generation 37 - Current best internal CV score: 0.8104025859535703
+Generation 38 - Current best internal CV score: 0.8104025859535703
+Generation 39 - Current best internal CV score: 0.8104025859535703
+Generation 40 - Current best internal CV score: 0.8104025859535703
+Generation 41 - Current best internal CV score: 0.8104025859535703
+Generation 42 - Current best internal CV score: 0.8104025859535703
+Generation 43 - Current best internal CV score: 0.8104025859535703
+Generation 44 - Current best internal CV score: 0.8104025859535703
+Generation 45 - Current best internal CV score: 0.8104025859535703
+Generation 46 - Current best internal CV score: 0.8104025859535703
+Generation 47 - Current best internal CV score: 0.8104025859535703
+Generation 48 - Current best internal CV score: 0.8104025859535703
+Generation 49 - Current best internal CV score: 0.8104025859535703
+Generation 50 - Current best internal CV score: 0.8104025859535703
+Generation 51 - Current best internal CV score: 0.8104025859535703
+Generation 52 - Current best internal CV score: 0.8104025859535703
+Generation 53 - Current best internal CV score: 0.8104025859535703
+Generation 54 - Current best internal CV score: 0.8104025859535703
+Generation 55 - Current best internal CV score: 0.8127828386717602
+Generation 56 - Current best internal CV score: 0.8127828386717602
+Generation 57 - Current best internal CV score: 0.8127828386717602
+Generation 58 - Current best internal CV score: 0.8127828386717602
+Generation 59 - Current best internal CV score: 0.8127828386717602
+Generation 60 - Current best internal CV score: 0.8127828386717602
+Generation 61 - Current best internal CV score: 0.8127828386717602
+Generation 62 - Current best internal CV score: 0.8127828386717602
+Generation 63 - Current best internal CV score: 0.8127828386717602
+Generation 64 - Current best internal CV score: 0.8127828386717602
+Generation 65 - Current best internal CV score: 0.8127828386717602
+Generation 66 - Current best internal CV score: 0.8127828386717602
+Generation 67 - Current best internal CV score: 0.8127828386717602
+Generation 68 - Current best internal CV score: 0.8127828386717602
+Generation 69 - Current best internal CV score: 0.8127828386717602
+Generation 70 - Current best internal CV score: 0.8127828386717602
+Generation 71 - Current best internal CV score: 0.8127828386717602
+Generation 72 - Current best internal CV score: 0.8127828386717602
+Generation 73 - Current best internal CV score: 0.8127828386717602
+Generation 74 - Current best internal CV score: 0.8127828386717602
+Generation 75 - Current best internal CV score: 0.8127828386717602
+Generation 76 - Current best internal CV score: 0.8127828386717602
+Generation 77 - Current best internal CV score: 0.8127828386717602
+Generation 78 - Current best internal CV score: 0.8127828386717602
+Generation 79 - Current best internal CV score: 0.8127828386717602
+Generation 80 - Current best internal CV score: 0.8127828386717602
+Generation 81 - Current best internal CV score: 0.8127828386717602
+Generation 82 - Current best internal CV score: 0.8127828386717602
+Generation 83 - Current best internal CV score: 0.8127828386717602
+Generation 84 - Current best internal CV score: 0.8127828386717602
+Generation 85 - Current best internal CV score: 0.8127828386717602
+Generation 86 - Current best internal CV score: 0.8127828386717602
+Generation 87 - Current best internal CV score: 0.8127828386717602
+Generation 88 - Current best internal CV score: 0.8127828386717602
+Generation 89 - Current best internal CV score: 0.8151630913899501
+Generation 90 - Current best internal CV score: 0.8151630913899501
+Generation 91 - Current best internal CV score: 0.8151630913899501
+Generation 92 - Current best internal CV score: 0.8151630913899501
+Generation 93 - Current best internal CV score: 0.8151630913899501
+Generation 94 - Current best internal CV score: 0.8152218630620041
+Generation 95 - Current best internal CV score: 0.8152218630620041
+Generation 96 - Current best internal CV score: 0.8152218630620041
+Generation 97 - Current best internal CV score: 0.8152218630620041
+Generation 98 - Current best internal CV score: 0.8152218630620041
+Generation 99 - Current best internal CV score: 0.8152218630620041
+Generation 100 - Current best internal CV score: 0.8152218630620041
+
+Best pipeline: RandomForestClassifier(DecisionTreeClassifier(XGBClassifier(Normalizer(input_matrix, norm=l1), learning_rate=0.5, max_depth=6, min_child_weight=20, n_estimators=100, nthread=1, subsample=0.55), criterion=entropy, max_depth=2, min_samples_leaf=14, min_samples_split=4), bootstrap=False, criterion=gini, max_features=0.8, min_samples_leaf=11, min_samples_split=11, n_estimators=100)
+Confusion Matrix
+[[337  54]
+ [ 44 114]]
+
+Metrics
+Accuracy: 82.14936247723132 %
+F1_score: 69.93865030674846 %
+Recall: 72.15189873417721 %
+Precision: 67.85714285714286 %
+
+3 horas
