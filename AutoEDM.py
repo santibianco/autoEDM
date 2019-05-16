@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import pickle
 import shap
+import eli5
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
@@ -189,7 +190,7 @@ class AutoEDM():
         self.model_path = model_path
 
         # CARGA DE DATASET
-        self.df = self._createDataset(self.dataset_path)
+        self.df = self._createDataset(dataset_path)
 
         # MINIMO PRE-PROCESAMIENTO PARA QUE FUNCIONE EL ALGORITMO DE AUTOML
         self.X, self.y = self._preProcessData(self.df, self.target)
@@ -218,6 +219,11 @@ class AutoEDM():
                                             y_train,
                                             self.model_path,
                                             self.classifier_config_dict)
+        self._trf_pipeline, self._model_used = self._separatePipelines()
+        self._feature_names = list(self.X)
+        X_transformed = self._trf_pipeline.fit_transform(self.X)
+        for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
+            self._feature_names.append(f'Xt{n_feat}')
 
     def _preProcessData(self, df, target=None):
         if target is not None:
@@ -257,8 +263,11 @@ class AutoEDM():
 
     def showModelStatistics(self):
         # ESTADISTICAS DEL MODELO
-        predictions = self.pipeline.predict(self.X)
-        print('----------- PREDICTIONS STATISTICS -----------')
+        print('----------- FULL PIPELINE METRICS -----------')
+        self._printMetrics(self.pipeline)
+
+    def _printMetrics(self, model):
+        predictions = model.predict(self.X)
         print()
         print('Confusion Matrix')
         print(confusion_matrix(self.y, predictions))
@@ -284,30 +293,21 @@ class AutoEDM():
         return (trf_pipeline, model_used)
 
     def showSimplifiedModel(self):
-        print('--------------SIMPLIFIED MODEL----------------')
-        print()
-        # fit simplified model
-        # XGB only
-        # output xgb model as text
-        self._trf_pipeline, self._model_used = self._separatePipelines()
         X_transformed = self._trf_pipeline.fit_transform(self.X)
+        # fit simplified model
+        # XGB only: output xgb model as text
         self._model_used.get_booster().dump_model('xgbmodel.txt')
         Kmax = 5
-        # parse sklearn tree ensembles into the
-        # array of (feature index, threshold)
+        # XGB only
         splitter = DefragModel.parseXGBtrees('./xgbmodel.txt')
         mdl = DefragModel(modeltype='classification')
 
-        self._feature_names = list(self.X)
-        for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
-            self._feature_names.append(f'Xt{n_feat}')
         mdl.fit(X_transformed, self.y, splitter, Kmax,
                 fittype='FAB', featurename=self._feature_names)
 
         score, cover, coll = mdl.evaluate(X_transformed, self.y)
-
-        # print()
-        # print('----- Evaluated Results -----')
+        print('--------------SIMPLIFIED MODEL----------------')
+        print()
         print('Test Error = %f' % (score,))
         print('Test Coverage = %f' % (cover,))
         print('Overlap = %f' % (coll,))
@@ -316,14 +316,20 @@ class AutoEDM():
         print(mdl)
         os.remove('./xgbmodel.txt')
 
-    def predictStudent(self, data):
+    def predictStudent(self, data, describe=False):
         # pongo algun valor en el target para que nos sea null
         data[self.target] = 'NO'
         newData = self.df.append(data)
         newData, _ = self._preProcessData(newData, self.target)
         student = newData.tail(1)
         y = self.pipeline.predict(student)
-        print(y)
+        print(f'Preidcted Value: {y}')
+        if(describe):
+            full_student = self._trf_pipeline.fit_transform(student)
+            print(eli5.formatters.as_dataframe.explain_prediction_df(
+                                 self._model_used.get_booster(),
+                                 full_student[0],
+                                 feature_names=self._feature_names))
 
     def plotSHAPValues(self):
         explainer = shap.TreeExplainer(self._model_used)
@@ -361,9 +367,9 @@ if __name__ == "__main__":
 
     edm_process.loadModel()
 
-    edm_process.showModelStatistics()
+    # edm_process.showModelStatistics()
 
-    edm_process.showSimplifiedModel()
+    # edm_process.showSimplifiedModel()
 
     testStudent = pd.DataFrame(columns=['Edad', 'Edad primer anio',
                                         'Discapacidad', 'Trabaja',
@@ -373,7 +379,7 @@ if __name__ == "__main__":
                                data=[[25, 18, 'No', 'Si',
                                      'BACHILLER', 2, 3]])
 
-    # edm_process.predictStudent(testStudent)
+    edm_process.predictStudent(testStudent, describe=True)
 
     # edm_process.plotSHAPValues()
 
