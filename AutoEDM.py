@@ -3,6 +3,8 @@ import pandas as pd
 import numpy as np
 import pickle
 import shap
+import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, \
@@ -183,7 +185,6 @@ class AutoEDM():
 
         }
 
-        self.dataset_path = dataset_path
         self.target = target
         self.model_path = model_path
 
@@ -315,7 +316,7 @@ class AutoEDM():
         print(mdl)
         os.remove('./xgbmodel.txt')
 
-    def predictStudent(self, data, explain=True):
+    def predictStudent(self, data):
         # pongo algun valor en el target para que nos sea null
         data[self.target] = 'NO'
         newData = self.df.append(data)
@@ -323,16 +324,32 @@ class AutoEDM():
         student = newData.tail(1)
         y = self.pipeline.predict(student)
         print(y)
-        if(explain):
-            explainer = shap.TreeExplainer(self._model_used)
-            shap_data = self._trf_pipeline.fit_transform(newData)
-            shap_values = explainer.shap_values(shap_data)
-            # visualize the first prediction's explanation
-            # (use matplotlib=True to avoid Javascript)
-            # shap.force_plot(explainer.expected_value, shap_values,
-            #                 shap_data, matplotlib=True)
-            shap.summary_plot(shap_values, shap_data, plot_type="bar",
-                              feature_names=self._feature_names)
+
+    def plotSHAPValues(self):
+        explainer = shap.TreeExplainer(self._model_used)
+        shap_data = self._trf_pipeline.fit_transform(self.X)
+        shap_values = explainer.shap_values(shap_data)
+        # visualize the first prediction's explanation
+        # (use matplotlib=True to avoid Javascript)
+        # shap.force_plot(explainer.expected_value, shap_values,
+        #                 shap_data, matplotlib=True)
+        shap.summary_plot(shap_values, shap_data, plot_type="bar",
+                          feature_names=self._feature_names)
+
+    def plotCorrMatrix(self, transformed_features):
+        """Plots correlation matrix of numeric attributes."""
+        og_features = list(self.X.columns)
+        X = pd.DataFrame(columns=self._feature_names,
+                         data=self._trf_pipeline.fit_transform(self.X))
+        X = X[og_features + transformed_features]
+        corr = X.corr()  # calculate correlation among variables
+        # creating a null maks
+        mask = np.zeros_like(corr)
+        mask[np.triu_indices_from(mask)] = True
+        # making the plot
+        plt.figure()
+        sns.heatmap(corr, square=False, mask=mask)
+        plt.show()
 
 
 if __name__ == "__main__":
@@ -356,4 +373,8 @@ if __name__ == "__main__":
                                data=[[25, 18, 'No', 'Si',
                                      'BACHILLER', 2, 3]])
 
-    edm_process.predictStudent(testStudent, explain=False)
+    # edm_process.predictStudent(testStudent)
+
+    # edm_process.plotSHAPValues()
+
+    # edm_process.plotCorrMatrix([f'Xt{n}' for n in range(15)])
