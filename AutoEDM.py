@@ -12,6 +12,7 @@ from sklearn.metrics import confusion_matrix, accuracy_score, f1_score, \
                             recall_score, precision_score
 from sklearn.pipeline import Pipeline
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.impute import SimpleImputer
 from tpot import TPOTClassifier
 from defragTrees import DefragModel
 
@@ -191,6 +192,7 @@ class AutoEDM():
 
         # CARGA DE DATASET
         self.df = self._createDataset(dataset_path)
+        self.df = self._manageNulls(self.df)
 
         # MINIMO PRE-PROCESAMIENTO PARA QUE FUNCIONE EL ALGORITMO DE AUTOML
         self.X, self.y = self._preProcessData(self.df, self.target)
@@ -238,6 +240,23 @@ class AutoEDM():
             X = df
         X = pd.get_dummies(X)
         return (X, y)
+
+    def _manageNulls(self, data):
+        newData = data.copy()
+        null_columns = newData.columns[newData.isnull().any()]
+        if(not null_columns.empty):
+            print("WARNING: {} columns contain some null\
+                content".format(null_columns))
+            impNumeric = SimpleImputer(strategy='mean')
+            impCategorical = SimpleImputer(strategy='most_frequent')
+            for null_column in null_columns:
+                if isinstance(null_column, str):
+                    newData[null_column] = \
+                        impCategorical.fit_transform(newData[[null_column]])
+                else:
+                    newData[null_column] = \
+                        impNumeric.fit_transform(newData[[null_column]])
+        return newData
 
     def _createDataset(self, file):
         path = os.path.abspath(file)
@@ -360,26 +379,37 @@ class AutoEDM():
 
 if __name__ == "__main__":
 
-    edm_process = AutoEDM(dataset_path="Reglas Regular/Base modelos.xls",
-                          target="Dos finales por anio",
-                          model_path="Reglas Regular/trainedModel.md",
-                          show_feature_importances=True)
+    reglas_regular = {
+        "dataset_path": "Reglas Regular nulls/Base regular.xls",
+        "target": "Dos finales por anio",
+        "model_path": "Reglas Regular nulls/trainedModel.md",
+        "show_feature_importances": True
+    }
+
+    reglas_regular_nulls = {
+        "dataset_path": "Reglas Regular nulls/Base regular.xls",
+        "target": "Dos finales por anio",
+        "model_path": "Reglas Regular nulls/trainedModel.md",
+        "show_feature_importances": True
+    }
+
+    edm_process = AutoEDM()
 
     edm_process.loadModel()
 
-    # edm_process.showModelStatistics()
+    edm_process.showModelStatistics()
 
     # edm_process.showSimplifiedModel()
 
-    testStudent = pd.DataFrame(columns=['Edad', 'Edad primer anio',
-                                        'Discapacidad', 'Trabaja',
-                                        'Tipo Secundario',
-                                        'Categoria ultimo estudio madre',
-                                        'Categoria ultimo estudio padre'],
-                               data=[[25, 18, 'No', 'Si',
-                                     'BACHILLER', 2, 3]])
+    # testStudent = pd.DataFrame(columns=['Edad', 'Edad primer anio',
+    #                                     'Discapacidad', 'Trabaja',
+    #                                     'Tipo Secundario',
+    #                                     'Categoria ultimo estudio madre',
+    #                                     'Categoria ultimo estudio padre'],
+    #                            data=[[25, 18, 'No', 'Si',
+    #                                  'BACHILLER', 2, 3]])
 
-    edm_process.predictStudent(testStudent, describe=True)
+    #edm_process.predictStudent(testStudent, describe=True)
 
     # edm_process.plotSHAPValues()
 
