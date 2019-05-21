@@ -196,36 +196,42 @@ class AutoEDM():
 
         # MINIMO PRE-PROCESAMIENTO PARA QUE FUNCIONE EL ALGORITMO DE AUTOML
         self.X, self.y = self._preProcessData(self.df, self.target)
-
+        # SEPARO DATASETS DE ENTRENAMIENTO Y TEST
+        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y,
+                                                            train_size=0.75,
+                                                            test_size=0.25,
+                                                            random_state=42)
+        self.X_train = X_train
+        self.X_test = X_test
+        self.y_train = y_train
+        self.y_test = y_test
         if(show_feature_importances):
             print('-------- EARLY FEATURE IMPORTANCES --------')
             rf = RandomForestClassifier()
-            rf.fit(self.X, self.y)
+            rf.fit(self.X_train, self.y_train)
             feature_importances = pd.DataFrame(rf.feature_importances_,
                                                index=self.X.columns,
                                                columns=['importance']
                                                ).sort_values('importance',
                                                              ascending=False)
             print(feature_importances)
-            print()
+            print(rf.score(self.X_test, self.y_test))
 
     def loadModel(self):
-        # SEPARO DATASETS DE ENTRENAMIENTO Y TEST
-        X_train, X_test, y_train, y_test = train_test_split(self.X, self.y,
-                                                            train_size=0.75,
-                                                            test_size=0.25,
-                                                            random_state=22)
-
         # CARGO UN MODELO YA ENTRENADO O ENTRENO UNO NUEVO
-        self.pipeline = self._optimizeModel(X_train,
-                                            y_train,
+        self.pipeline = self._optimizeModel(self.X_train,
+                                            self.y_train,
                                             self.model_path,
                                             self.classifier_config_dict)
         self._trf_pipeline, self._model_used = self._separatePipelines()
         self._feature_names = list(self.X)
-        X_transformed = self._trf_pipeline.fit_transform(self.X)
-        for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
-            self._feature_names.append(f'Xt{n_feat}')
+        if(self._trf_pipeline):
+            try:
+                X_transformed = self._trf_pipeline.fit_transform(self.X)
+                for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
+                    self._feature_names.append(f'Xt{n_feat}')
+            except Exception as e:
+                print(e)
 
     def _preProcessData(self, df, target=None):
         if target is not None:
@@ -286,16 +292,16 @@ class AutoEDM():
         self._printMetrics(self.pipeline)
 
     def _printMetrics(self, model):
-        predictions = model.predict(self.X)
+        predictions = model.predict(self.X_test)
         print()
         print('Confusion Matrix')
-        print(confusion_matrix(self.y, predictions))
+        print(confusion_matrix(self.y_test, predictions))
         print()
         print('Metrics')
-        print(f'Accuracy: {accuracy_score(self.y, predictions) * 100} %')
-        print(f'F1_score: {f1_score(self.y, predictions) * 100} %')
-        print(f'Recall: {recall_score(self.y, predictions) * 100} %')
-        print(f'Precision: {precision_score(self.y, predictions) * 100} %')
+        print(f'Accuracy: {accuracy_score(self.y_test, predictions) * 100} %')
+        print(f'F1_score: {f1_score(self.y_test, predictions) * 100} %')
+        print(f'Recall: {recall_score(self.y_test, predictions) * 100} %')
+        print(f'Precision: {precision_score(self.y_test, predictions) * 100} %')
         print()
 
     def _separatePipelines(self):
@@ -305,8 +311,10 @@ class AutoEDM():
         for n_step in range(len(self.pipeline.steps)-1):
             # print(f'applying {pipeline.steps[n_step]}...')
             trf_steps.append(self.pipeline.steps[n_step])
-
-        trf_pipeline = Pipeline(steps=trf_steps)
+        if trf_steps:
+            trf_pipeline = Pipeline(steps=trf_steps)
+        else:
+            trf_pipeline = None
         last_step_name = list(self.pipeline.named_steps.keys())[-1]
         model_used = self.pipeline.named_steps[last_step_name]
         return (trf_pipeline, model_used)
@@ -314,26 +322,29 @@ class AutoEDM():
     def showSimplifiedModel(self):
         X_transformed = self._trf_pipeline.fit_transform(self.X)
         # fit simplified model
-        # XGB only: output xgb model as text
-        self._model_used.get_booster().dump_model('xgbmodel.txt')
         Kmax = 5
-        # XGB only
-        splitter = DefragModel.parseXGBtrees('./xgbmodel.txt')
-        mdl = DefragModel(modeltype='classification')
+        try:
+            # XGB only: output xgb model as text
+            self._model_used.get_booster().dump_model('xgbmodel.txt')
+            splitter = DefragModel.parseXGBtrees('./xgbmodel.txt')
+            os.remove('./xgbmodel.txt')
+        except Exception:
+            splitter = DefragModel.parseSLtrees(self._model_used)
+        finally:
+            mdl = DefragModel(modeltype='classification')
 
-        mdl.fit(X_transformed, self.y, splitter, Kmax,
-                fittype='FAB', featurename=self._feature_names)
+            mdl.fit(X_transformed, self.y, splitter, Kmax,
+                    fittype='FAB', featurename=self._feature_names)
 
-        score, cover, coll = mdl.evaluate(X_transformed, self.y)
-        print('--------------SIMPLIFIED MODEL----------------')
-        print()
-        print('Test Error = %f' % (score,))
-        print('Test Coverage = %f' % (cover,))
-        print('Overlap = %f' % (coll,))
-        print()
-        print('----- RULES -----')
-        print(mdl)
-        os.remove('./xgbmodel.txt')
+            score, cover, coll = mdl.evaluate(X_transformed, self.y)
+            print('--------------SIMPLIFIED MODEL----------------')
+            print()
+            print('Test Error = %f' % (score,))
+            print('Test Coverage = %f' % (cover,))
+            print('Overlap = %f' % (coll,))
+            print()
+            print('----- RULES -----')
+            print(mdl)
 
     def predictStudent(self, data, describe=False):
         # pongo algun valor en el target para que nos sea null
@@ -361,12 +372,17 @@ class AutoEDM():
         shap.summary_plot(shap_values, shap_data, plot_type="bar",
                           feature_names=self._feature_names)
 
-    def plotCorrMatrix(self, transformed_features):
+    def plotCorrMatrix(self, transformed_features=None, add_target=False):
         """Plots correlation matrix of numeric attributes."""
         og_features = list(self.X.columns)
-        X = pd.DataFrame(columns=self._feature_names,
-                         data=self._trf_pipeline.fit_transform(self.X))
-        X = X[og_features + transformed_features]
+        if(transformed_features is not None):
+            X = pd.DataFrame(columns=self._feature_names,
+                             data=self._trf_pipeline.fit_transform(self.X))
+            X = X[og_features + transformed_features]
+        else:
+            X = self.X
+        if(add_target):
+            X['target'] = self.y
         corr = X.corr()  # calculate correlation among variables
         # creating a null maks
         mask = np.zeros_like(corr)
@@ -380,9 +396,9 @@ class AutoEDM():
 if __name__ == "__main__":
 
     reglas_regular = {
-        "dataset_path": "Reglas Regular nulls/Base regular.xls",
+        "dataset_path": "Reglas Regular/Base modelos.xls",
         "target": "Dos finales por anio",
-        "model_path": "Reglas Regular nulls/trainedModel.md",
+        "model_path": "Reglas Regular/trainedModel.md",
         "show_feature_importances": True
     }
 
@@ -393,7 +409,7 @@ if __name__ == "__main__":
         "show_feature_importances": True
     }
 
-    edm_process = AutoEDM()
+    edm_process = AutoEDM(**reglas_regular_nulls)
 
     edm_process.loadModel()
 
@@ -413,4 +429,4 @@ if __name__ == "__main__":
 
     # edm_process.plotSHAPValues()
 
-    # edm_process.plotCorrMatrix([f'Xt{n}' for n in range(15)])
+    edm_process.plotCorrMatrix()
