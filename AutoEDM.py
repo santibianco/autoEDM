@@ -163,28 +163,6 @@ class AutoEDM():
                               0.005, 0.01, 0.05, 0.1, 0.2]
             },
 
-            'sklearn.feature_selection.RFE': {
-                'step': np.arange(0.05, 1.01, 0.05),
-                'estimator': {
-                    'sklearn.ensemble.ExtraTreesClassifier': {
-                        'n_estimators': [100],
-                        'criterion': ['gini', 'entropy'],
-                        'max_features': np.arange(0.05, 1.01, 0.05)
-                    }
-                }
-            },
-
-            'sklearn.feature_selection.SelectFromModel': {
-                'threshold': np.arange(0, 1.01, 0.05),
-                'estimator': {
-                    'sklearn.ensemble.ExtraTreesClassifier': {
-                        'n_estimators': [100],
-                        'criterion': ['gini', 'entropy'],
-                        'max_features': np.arange(0.05, 1.01, 0.05)
-                    }
-                }
-            }
-
         }
 
         self.target = target
@@ -226,12 +204,10 @@ class AutoEDM():
         self._trf_pipeline, self._model_used = self._separatePipelines()
         self._feature_names = list(self.X)
         if(self._trf_pipeline):
-            try:
-                X_transformed = self._trf_pipeline.fit_transform(self.X)
-                for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
-                    self._feature_names.append(f'Xt{n_feat}')
-            except Exception as e:
-                print(e)
+            print(self._trf_pipeline)
+            X_transformed = self._trf_pipeline.fit_transform(self.X)
+            for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
+                self._feature_names.append(f'Xt{n_feat}')
 
     def _preProcessData(self, df, target=None):
         if target is not None:
@@ -320,7 +296,10 @@ class AutoEDM():
         return (trf_pipeline, model_used)
 
     def showSimplifiedModel(self):
-        X_transformed = self._trf_pipeline.fit_transform(self.X)
+        if(self._trf_pipeline):
+            X = self._trf_pipeline.fit_transform(self.X)
+        else:
+            X = self.X.values
         # fit simplified model
         Kmax = 5
         try:
@@ -333,10 +312,10 @@ class AutoEDM():
         finally:
             mdl = DefragModel(modeltype='classification')
 
-            mdl.fit(X_transformed, self.y, splitter, Kmax,
+            mdl.fit(X, self.y, splitter, Kmax,
                     fittype='FAB', featurename=self._feature_names)
 
-            score, cover, coll = mdl.evaluate(X_transformed, self.y)
+            score, cover, coll = mdl.evaluate(X, self.y)
             print('--------------SIMPLIFIED MODEL----------------')
             print()
             print('Test Error = %f' % (score,))
@@ -398,24 +377,31 @@ if __name__ == "__main__":
     reglas_regular = {
         "dataset_path": "Reglas Regular/Base modelos.xls",
         "target": "Dos finales por anio",
-        "model_path": "Reglas Regular/trainedModel.md",
+        "model_path": "Reglas Regular/trainedModelComplejo.md",
         "show_feature_importances": True
     }
 
-    reglas_regular_nulls = {
-        "dataset_path": "Reglas Regular nulls/Base regular.xls",
+    reglas_regular_plan = {
+        "dataset_path": "Reglas Regular plan/Base regular.xls",
         "target": "Dos finales por anio",
-        "model_path": "Reglas Regular nulls/trainedModel.md",
+        "model_path": "Reglas Regular plan/trainedModel.md",
         "show_feature_importances": True
     }
 
-    edm_process = AutoEDM(**reglas_regular_nulls)
+    reglas_regular_personal = {
+        "dataset_path": "Reglas Regular personal/Base regular.xls",
+        "target": "Dos finales por anio",
+        "model_path": "Reglas Regular personal/trainedModel.md",
+        "show_feature_importances": True
+    }
+
+    edm_process = AutoEDM(**reglas_regular_personal)
 
     edm_process.loadModel()
 
     edm_process.showModelStatistics()
 
-    # edm_process.showSimplifiedModel()
+    edm_process.showSimplifiedModel()
 
     # testStudent = pd.DataFrame(columns=['Edad', 'Edad primer anio',
     #                                     'Discapacidad', 'Trabaja',
