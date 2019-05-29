@@ -205,7 +205,10 @@ class AutoEDM():
         self._feature_names = list(self.X)
         if(self._trf_pipeline):
             print(self._trf_pipeline)
-            X_transformed = self._trf_pipeline.fit_transform(self.X)
+            try:
+                X_transformed = self._trf_pipeline.fit_transform(self.X)
+            except Exception:
+                X_transformed = self._trf_pipeline.fit_transform(self.X, self.y)
             for n_feat in range(len(list(X_transformed[0, :]))-len(list(self.X))):
                 self._feature_names.append(f'Xt{n_feat}')
 
@@ -297,11 +300,14 @@ class AutoEDM():
 
     def showSimplifiedModel(self):
         if(self._trf_pipeline):
-            X = self._trf_pipeline.fit_transform(self.X)
+            try:
+                X = self._trf_pipeline.fit_transform(self.X)
+            except Exception:
+                X = self._trf_pipeline.fit_transform(self.X, self.y)
         else:
             X = self.X.values
         # fit simplified model
-        Kmax = 5
+        Kmax = 7
         try:
             # XGB only: output xgb model as text
             self._model_used.get_booster().dump_model('xgbmodel.txt')
@@ -326,7 +332,7 @@ class AutoEDM():
             print(mdl)
 
     def predictStudent(self, data, describe=False):
-        # pongo algun valor en el target para que nos sea null
+        # pongo algun valor en el target para que no sea null
         data[self.target] = 'NO'
         newData = self.df.append(data)
         newData, _ = self._preProcessData(newData, self.target)
@@ -334,11 +340,20 @@ class AutoEDM():
         y = self.pipeline.predict(student)
         print(f'Preidcted Value: {y}')
         if(describe):
-            full_student = self._trf_pipeline.fit_transform(student)
-            print(eli5.formatters.as_dataframe.explain_prediction_df(
-                                 self._model_used.get_booster(),
-                                 full_student[0],
-                                 feature_names=self._feature_names))
+            if(self._trf_pipeline):
+                full_student = self._trf_pipeline.fit_transform(newData)
+            else:
+                full_student = student
+            try:
+                print(eli5.formatters.as_dataframe.explain_prediction_df(
+                                    self._model_used.get_booster(),
+                                    full_student[0],
+                                    feature_names=self._feature_names))
+            except Exception:
+                print(eli5.formatters.as_dataframe.explain_prediction_df(
+                                    self._model_used,
+                                    full_student,
+                                    feature_names=self._feature_names))
 
     def plotSHAPValues(self):
         explainer = shap.TreeExplainer(self._model_used)
@@ -395,24 +410,18 @@ if __name__ == "__main__":
         "show_feature_importances": True
     }
 
-    edm_process = AutoEDM(**reglas_regular_personal)
+    edm_process = AutoEDM(**reglas_regular)
 
     edm_process.loadModel()
 
     edm_process.showModelStatistics()
 
-    edm_process.showSimplifiedModel()
+    # edm_process.showSimplifiedModel()
 
-    # testStudent = pd.DataFrame(columns=['Edad', 'Edad primer anio',
-    #                                     'Discapacidad', 'Trabaja',
-    #                                     'Tipo Secundario',
-    #                                     'Categoria ultimo estudio madre',
-    #                                     'Categoria ultimo estudio padre'],
-    #                            data=[[25, 18, 'No', 'Si',
-    #                                  'BACHILLER', 2, 3]])
+    testStudent = edm_process.df.iloc[1]
 
-    #edm_process.predictStudent(testStudent, describe=True)
+    edm_process.predictStudent(testStudent, describe=True)
 
     # edm_process.plotSHAPValues()
 
-    edm_process.plotCorrMatrix()
+    # edm_process.plotCorrMatrix()
